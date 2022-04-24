@@ -1,15 +1,34 @@
 import datetime as dt
 from rest_framework import serializers
 from rest_framework import status
+import webcolors
 
-from cats.models import Cat, Owner, Achievement, AchievementCat
+from cats.models import Cat, Owner, Achievement, AchievementCat, CHOICES
+
+
+class Hex2NameColor(serializers.Field):
+    # При чтении данных ничего не меняем - просто возвращаем как есть
+    def to_representation(self, value):
+        return value
+    # При записи код цвета конвертируется в его название
+    def to_internal_value(self, data):
+        # Доверяй, но проверяй
+        try:
+            # Если имя цвета существует, то конвертируем код в название
+            data = webcolors.hex_to_name(data)
+        except ValueError:
+            # Иначе возвращаем ошибку
+            raise serializers.ValidationError('Для этого цвета нет имени')
+        # Возвращаем данные в новом формате
+        return data
 
 
 class AchievementSerializer(serializers.ModelSerializer):
+    achievement_name = serializers.CharField(source='name')
 
     class Meta:
         model = Achievement
-        fields = ('id', 'name')
+        fields = ('id', 'achievement_name')
 
 
 class CatSerializer(serializers.ModelSerializer):
@@ -17,6 +36,8 @@ class CatSerializer(serializers.ModelSerializer):
     achievements = AchievementSerializer(many=True, required=False)
     # id = serializers.IntegerField(required=False)
     age = serializers.SerializerMethodField()
+    color = Hex2NameColor()
+    color = serializers.ChoiceField(choices=CHOICES)
 
     class Meta:
         model = Cat
