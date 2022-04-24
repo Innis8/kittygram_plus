@@ -1,7 +1,8 @@
 import datetime as dt
+import webcolors
 from rest_framework import serializers
 from rest_framework import status
-import webcolors
+
 
 from cats.models import Cat, Owner, Achievement, AchievementCat, CHOICES
 
@@ -32,9 +33,13 @@ class AchievementSerializer(serializers.ModelSerializer):
 
 
 class CatSerializer(serializers.ModelSerializer):
+    # Для отображения имен владельцев вместо id. 
+    # Поля с типом StringRelatedField не поддерживают операции записи,
+    # поэтому для них всегда должен быть указан параметр read_only=True.
+    # Поле должно быть закомментировано или удалено при добавлении
+    # новой записи о котике, иначе вместо владельца будет Null
     # owner = serializers.StringRelatedField(read_only=True)
     achievements = AchievementSerializer(many=True, required=False)
-    # id = serializers.IntegerField(required=False)
     age = serializers.SerializerMethodField()
     color = Hex2NameColor()
     color = serializers.ChoiceField(choices=CHOICES)
@@ -42,8 +47,7 @@ class CatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cat
         fields = ('id', 'name', 'color', 'birth_year', 'owner', 'achievements',
-        'age'
-        )
+            'age')
     def get_age(self, obj):
         return dt.datetime.now().year - obj.birth_year
 
@@ -76,3 +80,10 @@ class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner
         fields = ('id', 'first_name', 'last_name', 'cats')
+
+class CatListSerializer(serializers.ModelSerializer):
+    color = serializers.ChoiceField(choices=CHOICES)
+    
+    class Meta:
+        model = Cat
+        fields = ('id', 'name', 'color') 

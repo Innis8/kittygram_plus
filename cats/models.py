@@ -7,7 +7,7 @@ CHOICES = (
         ('Ginger', 'Рыжий'),
         ('Mixed', 'Смешанный'),
         ('Mackerel Tabby', 'Тэбби-макрель'),
-    )
+)
 
 
 class Achievement(models.Model):
